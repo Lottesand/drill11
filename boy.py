@@ -91,6 +91,8 @@ class AutoRun:
 
     def enter(self):
         self.boy.frame = 0
+        # 방향키 입력(boy.dir)과 별개로 자기 이동 방향을 가진다. 바라보던 쪽으로 출발.
+        self.dir = self.boy.face_dir
 
     def exit(self):
         pass
@@ -98,6 +100,8 @@ class AutoRun:
     def do(self):
         boy = self.boy
         boy.frame = (boy.frame + 1) % 8
+        boy.x += self.dir * 5
+        boy.face_dir = self.dir
 
     def draw(self):
         boy = self.boy
