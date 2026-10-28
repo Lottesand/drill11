@@ -57,6 +57,32 @@ class Sleep:
                                           -3.141592 / 2, '', boy.x + 25, boy.y - 25, 100, 100)
 
 
+class Run:
+    def __init__(self, boy):
+        self.boy = boy
+
+    def enter(self):
+        self.boy.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+        boy = self.boy
+        boy.face_dir = boy.dir
+        boy.frame = (boy.frame + 1) % 8
+        boy.x += boy.dir * 5
+        # 화면 밖으로 나가지 않게 (스프라이트 몸통 폭 고려)
+        boy.x = clamp(25, boy.x, get_canvas_width() - 25)
+
+    def draw(self):
+        boy = self.boy
+        if boy.face_dir == 1:
+            boy.image.clip_draw(boy.frame * 100, 100, 100, 100, boy.x, boy.y)
+        else:
+            boy.image.clip_draw(boy.frame * 100, 0, 100, 100, boy.x, boy.y)
+
+
 class Boy:
     transitions = [
         {'trigger': 'time_out',   'source': 'IDLE',  'dest': 'SLEEP'},
@@ -73,10 +99,9 @@ class Boy:
         self.right_pressed, self.left_pressed = False, False
         self.image = load_image('animation_sheet.png')
 
-        # 상태 이름 -> 상태 객체. 아직 클래스로 옮기지 않은 상태는 Boy의 메서드를 쓴다.
-        self.state_objects = {'IDLE': Idle(self), 'SLEEP': Sleep(self)}
+        # 상태 이름 -> 상태 객체
+        self.state_objects = {'IDLE': Idle(self), 'SLEEP': Sleep(self), 'RUN': Run(self)}
         states = [State(name, on_enter=s.enter, on_exit=s.exit) for name, s in self.state_objects.items()]
-        states += ['RUN']
         # ignore_invalid_triggers: 현재 상태에서 정의되지 않은 이벤트는 에러 없이 무시
         self.machine = Machine(model=self, states=states, transitions=Boy.transitions,
                                initial='IDLE', ignore_invalid_triggers=True)
@@ -100,30 +125,8 @@ class Boy:
                 self.stop()
 
     def update(self):
-        if self.state in self.state_objects:
-            self.state_objects[self.state].do()
-        else:
-            getattr(self, f'do_{self.state}')()
+        # 현재 상태 객체에 위임
+        self.state_objects[self.state].do()
 
     def draw(self):
-        if self.state in self.state_objects:
-            self.state_objects[self.state].draw()
-        else:
-            getattr(self, f'draw_{self.state}')()
-
-    # ---------- RUN ----------
-    def on_enter_RUN(self):
-        self.frame = 0
-
-    def do_RUN(self):
-        self.face_dir = self.dir
-        self.frame = (self.frame + 1) % 8
-        self.x += self.dir * 5
-        # 화면 밖으로 나가지 않게 (스프라이트 몸통 폭 고려)
-        self.x = clamp(25, self.x, get_canvas_width() - 25)
-
-    def draw_RUN(self):
-        if self.face_dir == 1:
-            self.image.clip_draw(self.frame * 100, 100, 100, 100, self.x, self.y)
-        else:
-            self.image.clip_draw(self.frame * 100, 0, 100, 100, self.x, self.y)
+        self.state_objects[self.state].draw()
