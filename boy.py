@@ -6,6 +6,9 @@ from transitions import Machine, State
 RIGHT_KEYS = (SDLK_RIGHT,)
 LEFT_KEYS = (SDLK_LEFT,)
 
+RUN_SPEED = 5        # px / frame
+AUTO_RUN_SPEED = 15  # RUN 의 3배
+
 
 # 상태 클래스: enter / exit / do / draw 를 가진다
 class Idle:
@@ -72,7 +75,7 @@ class Run:
         boy = self.boy
         boy.face_dir = boy.dir
         boy.frame = (boy.frame + 1) % 8
-        boy.x += boy.dir * 5
+        boy.x += boy.dir * RUN_SPEED
         # 화면 밖으로 나가지 않게 (스프라이트 몸통 폭 고려)
         boy.x = clamp(25, boy.x, get_canvas_width() - 25)
 
@@ -100,7 +103,7 @@ class AutoRun:
     def do(self):
         boy = self.boy
         boy.frame = (boy.frame + 1) % 8
-        boy.x += self.dir * 5
+        boy.x += self.dir * AUTO_RUN_SPEED
         boy.face_dir = self.dir
 
     def draw(self):
