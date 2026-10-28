@@ -1,5 +1,5 @@
 from pico2d import (load_image, get_time, get_canvas_width, clamp,
-                    SDL_KEYDOWN, SDL_KEYUP, SDLK_SPACE, SDLK_LEFT, SDLK_RIGHT)
+                    SDL_KEYDOWN, SDL_KEYUP, SDLK_SPACE, SDLK_LEFT, SDLK_RIGHT, SDLK_a)
 from transitions import Machine, State
 
 # a 키는 AutoRun 에 쓰므로 이동은 방향키로만
@@ -113,6 +113,7 @@ class Boy:
         {'trigger': 'space_down', 'source': 'SLEEP', 'dest': 'IDLE'},
         {'trigger': 'move',       'source': ['IDLE', 'SLEEP'], 'dest': 'RUN'},
         {'trigger': 'stop',       'source': 'RUN',   'dest': 'IDLE'},
+        {'trigger': 'a_down',     'source': 'IDLE',  'dest': 'AUTO_RUN'},
     ]
 
     def __init__(self):
@@ -136,6 +137,8 @@ class Boy:
     def handle_event(self, event):
         if event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
             self.space_down()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_a:
+            self.a_down()
         elif event.type in (SDL_KEYDOWN, SDL_KEYUP) and event.key in RIGHT_KEYS + LEFT_KEYS:
             pressed = event.type == SDL_KEYDOWN
             if event.key in RIGHT_KEYS:
