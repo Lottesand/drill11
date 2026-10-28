@@ -1,9 +1,10 @@
 from pico2d import (load_image, get_time, get_canvas_width, clamp,
-                    SDL_KEYDOWN, SDL_KEYUP, SDLK_SPACE, SDLK_LEFT, SDLK_RIGHT, SDLK_a, SDLK_d)
+                    SDL_KEYDOWN, SDL_KEYUP, SDLK_SPACE, SDLK_LEFT, SDLK_RIGHT)
 from transitions import Machine, State
 
-RIGHT_KEYS = (SDLK_RIGHT, SDLK_d)
-LEFT_KEYS = (SDLK_LEFT, SDLK_a)
+# a 키는 AutoRun 에 쓰므로 이동은 방향키로만
+RIGHT_KEYS = (SDLK_RIGHT,)
+LEFT_KEYS = (SDLK_LEFT,)
 
 
 # 상태 클래스: enter / exit / do / draw 를 가진다
