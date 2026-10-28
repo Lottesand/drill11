@@ -97,6 +97,7 @@ class AutoRun:
         self.boy.frame = 0
         # 방향키 입력(boy.dir)과 별개로 자기 이동 방향을 가진다. 바라보던 쪽으로 출발.
         self.dir = self.boy.face_dir
+        self.start_time = get_time()
 
     def exit(self):
         pass
@@ -114,6 +115,9 @@ class AutoRun:
             boy.x, self.dir = margin, 1
         boy.face_dir = self.dir
 
+        if get_time() - self.start_time >= 5:
+            boy.time_out()
+
     def draw(self):
         boy = self.boy
         size = 100 * AUTO_RUN_SCALE
@@ -128,6 +132,7 @@ class AutoRun:
 class Boy:
     transitions = [
         {'trigger': 'time_out',   'source': 'IDLE',  'dest': 'SLEEP'},
+        {'trigger': 'time_out',   'source': 'AUTO_RUN', 'dest': 'IDLE'},
         {'trigger': 'space_down', 'source': 'SLEEP', 'dest': 'IDLE'},
         {'trigger': 'move',       'source': ['IDLE', 'SLEEP'], 'dest': 'RUN'},
         {'trigger': 'stop',       'source': 'RUN',   'dest': 'IDLE'},
