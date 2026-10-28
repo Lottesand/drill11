@@ -1,12 +1,38 @@
 from pico2d import (load_image, get_time, get_canvas_width, clamp,
                     SDL_KEYDOWN, SDL_KEYUP, SDLK_SPACE, SDLK_LEFT, SDLK_RIGHT, SDLK_a, SDLK_d)
-from transitions import Machine
+from transitions import Machine, State
 
 RIGHT_KEYS = (SDLK_RIGHT, SDLK_d)
 LEFT_KEYS = (SDLK_LEFT, SDLK_a)
 
+
+# 상태 클래스: enter / exit / do / draw 를 가진다
+class Idle:
+    def __init__(self, boy):
+        self.boy = boy
+
+    def enter(self):
+        self.boy.frame = 0
+        self.start_time = get_time()
+
+    def exit(self):
+        pass
+
+    def do(self):
+        boy = self.boy
+        boy.frame = (boy.frame + 1) % 8
+        if get_time() - self.start_time >= 5:
+            boy.time_out()
+
+    def draw(self):
+        boy = self.boy
+        if boy.face_dir == 1:
+            boy.image.clip_draw(boy.frame * 100, 300, 100, 100, boy.x, boy.y)
+        else:
+            boy.image.clip_draw(boy.frame * 100, 200, 100, 100, boy.x, boy.y)
+
+
 class Boy:
-    states = ['IDLE', 'SLEEP', 'RUN']
     transitions = [
         {'trigger': 'time_out',   'source': 'IDLE',  'dest': 'SLEEP'},
         {'trigger': 'space_down', 'source': 'SLEEP', 'dest': 'IDLE'},
@@ -21,11 +47,16 @@ class Boy:
         self.dir = 0  # 이동 방향: -1 왼쪽, 0 정지, 1 오른쪽
         self.right_pressed, self.left_pressed = False, False
         self.image = load_image('animation_sheet.png')
+
+        # 상태 이름 -> 상태 객체. 아직 클래스로 옮기지 않은 상태는 Boy의 메서드를 쓴다.
+        self.state_objects = {'IDLE': Idle(self)}
+        states = [State(name, on_enter=s.enter, on_exit=s.exit) for name, s in self.state_objects.items()]
+        states += ['SLEEP', 'RUN']
         # ignore_invalid_triggers: 현재 상태에서 정의되지 않은 이벤트는 에러 없이 무시
-        self.machine = Machine(model=self, states=Boy.states, transitions=Boy.transitions,
+        self.machine = Machine(model=self, states=states, transitions=Boy.transitions,
                                initial='IDLE', ignore_invalid_triggers=True)
         # 초기 상태는 on_enter가 자동 호출되지 않으므로 직접 호출
-        self.on_enter_IDLE()
+        self.state_objects['IDLE'].enter()
 
     def handle_event(self, event):
         if event.type == SDL_KEYDOWN and event.key == SDLK_SPACE:
@@ -44,27 +75,16 @@ class Boy:
                 self.stop()
 
     def update(self):
-        # 현재 상태(self.state)에 맞는 do_ 함수 호출
-        getattr(self, f'do_{self.state}')()
+        if self.state in self.state_objects:
+            self.state_objects[self.state].do()
+        else:
+            getattr(self, f'do_{self.state}')()
 
     def draw(self):
-        getattr(self, f'draw_{self.state}')()
-
-    # ---------- IDLE ----------
-    def on_enter_IDLE(self):
-        self.frame = 0
-        self.idle_start_time = get_time()
-
-    def do_IDLE(self):
-        self.frame = (self.frame + 1) % 8
-        if get_time() - self.idle_start_time >= 5:
-            self.time_out()
-
-    def draw_IDLE(self):
-        if self.face_dir == 1:
-            self.image.clip_draw(self.frame * 100, 300, 100, 100, self.x, self.y)
+        if self.state in self.state_objects:
+            self.state_objects[self.state].draw()
         else:
-            self.image.clip_draw(self.frame * 100, 200, 100, 100, self.x, self.y)
+            getattr(self, f'draw_{self.state}')()
 
     # ---------- SLEEP ----------
     def on_enter_SLEEP(self):
