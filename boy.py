@@ -32,6 +32,31 @@ class Idle:
             boy.image.clip_draw(boy.frame * 100, 200, 100, 100, boy.x, boy.y)
 
 
+class Sleep:
+    def __init__(self, boy):
+        self.boy = boy
+
+    def enter(self):
+        self.boy.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+        boy = self.boy
+        boy.frame = (boy.frame + 1) % 8
+
+    def draw(self):
+        boy = self.boy
+        # IDLE 프레임을 90도 눕혀서 그린다
+        if boy.face_dir == 1:
+            boy.image.clip_composite_draw(boy.frame * 100, 300, 100, 100,
+                                          3.141592 / 2, '', boy.x - 25, boy.y - 25, 100, 100)
+        else:
+            boy.image.clip_composite_draw(boy.frame * 100, 200, 100, 100,
+                                          -3.141592 / 2, '', boy.x + 25, boy.y - 25, 100, 100)
+
+
 class Boy:
     transitions = [
         {'trigger': 'time_out',   'source': 'IDLE',  'dest': 'SLEEP'},
@@ -49,9 +74,9 @@ class Boy:
         self.image = load_image('animation_sheet.png')
 
         # 상태 이름 -> 상태 객체. 아직 클래스로 옮기지 않은 상태는 Boy의 메서드를 쓴다.
-        self.state_objects = {'IDLE': Idle(self)}
+        self.state_objects = {'IDLE': Idle(self), 'SLEEP': Sleep(self)}
         states = [State(name, on_enter=s.enter, on_exit=s.exit) for name, s in self.state_objects.items()]
-        states += ['SLEEP', 'RUN']
+        states += ['RUN']
         # ignore_invalid_triggers: 현재 상태에서 정의되지 않은 이벤트는 에러 없이 무시
         self.machine = Machine(model=self, states=states, transitions=Boy.transitions,
                                initial='IDLE', ignore_invalid_triggers=True)
@@ -85,22 +110,6 @@ class Boy:
             self.state_objects[self.state].draw()
         else:
             getattr(self, f'draw_{self.state}')()
-
-    # ---------- SLEEP ----------
-    def on_enter_SLEEP(self):
-        self.frame = 0
-
-    def do_SLEEP(self):
-        self.frame = (self.frame + 1) % 8
-
-    def draw_SLEEP(self):
-        # IDLE 프레임을 90도 눕혀서 그린다
-        if self.face_dir == 1:
-            self.image.clip_composite_draw(self.frame * 100, 300, 100, 100,
-                                           3.141592 / 2, '', self.x - 25, self.y - 25, 100, 100)
-        else:
-            self.image.clip_composite_draw(self.frame * 100, 200, 100, 100,
-                                           -3.141592 / 2, '', self.x + 25, self.y - 25, 100, 100)
 
     # ---------- RUN ----------
     def on_enter_RUN(self):
