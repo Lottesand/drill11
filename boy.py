@@ -105,6 +105,13 @@ class AutoRun:
         boy = self.boy
         boy.frame = (boy.frame + 1) % 8
         boy.x += self.dir * AUTO_RUN_SPEED
+        # 화면 좌우 끝에 닿으면 방향 전환 (몸통 폭 25 를 배율만큼 키운 경계)
+        margin = 25 * AUTO_RUN_SCALE
+        right_edge = get_canvas_width() - margin
+        if boy.x >= right_edge:
+            boy.x, self.dir = right_edge, -1
+        elif boy.x <= margin:
+            boy.x, self.dir = margin, 1
         boy.face_dir = self.dir
 
     def draw(self):
