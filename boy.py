@@ -8,6 +8,7 @@ LEFT_KEYS = (SDLK_LEFT,)
 
 RUN_SPEED = 5        # px / frame
 AUTO_RUN_SPEED = 15  # RUN 의 3배
+AUTO_RUN_SCALE = 2   # AutoRun 에서 그리는 크기 배율
 
 
 # 상태 클래스: enter / exit / do / draw 를 가진다
@@ -108,10 +109,11 @@ class AutoRun:
 
     def draw(self):
         boy = self.boy
+        size = 100 * AUTO_RUN_SCALE
         if boy.face_dir == 1:
-            boy.image.clip_draw(boy.frame * 100, 100, 100, 100, boy.x, boy.y)
+            boy.image.clip_draw(boy.frame * 100, 100, 100, 100, boy.x, boy.y, size, size)
         else:
-            boy.image.clip_draw(boy.frame * 100, 0, 100, 100, boy.x, boy.y)
+            boy.image.clip_draw(boy.frame * 100, 0, 100, 100, boy.x, boy.y, size, size)
 
 
 class Boy:
