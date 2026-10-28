@@ -92,8 +92,34 @@ RUN 이동은 방향키(←, →)로만 한다.
 | space | SLEEP에서 깨어남 |
 | ESC | 종료 |
 
-## 5. 산출물
+## 5. 상태 다이어그램
 
-- `boy.py`, `grass.py`, `main.py`, 이미지 리소스
+![Boy 상태 다이어그램](state_diagram.png)
+
+## 6. 구현 결과
+
+| ID | 구현 위치 (`boy.py`) |
+|----|----------------------|
+| R1 | `Boy.handle_event()` 에서 `a` 키 → `a_down` 트리거, 전환 `IDLE → AUTO_RUN`. `AutoRun.enter()` 가 바라보던 방향으로 출발, `AutoRun.do()` 가 매 프레임 이동 |
+| R2 | `AutoRun.enter()` 에서 시작 시간 기록, `AutoRun.do()` 에서 5초 경과 시 `time_out` → `AUTO_RUN → IDLE` |
+| R3 | `AUTO_RUN_SPEED = 15` (RUN 의 3배), `AUTO_RUN_SCALE = 2` 로 `AutoRun.draw()` 가 200×200 크기로 그림 |
+| R4 | `AutoRun.do()` 에서 x 가 `[50, 화면폭 - 50]` 경계에 닿으면 방향을 뒤집음 |
+| R5 | 전환 `move` 의 출발 상태에 `AUTO_RUN` 포함 → 방향키를 누르면 `RUN` |
+| R6 | `class AutoRun` (Idle / Sleep / Run 과 같은 enter / exit / do / draw 인터페이스) |
+| R7 | `state_diagram.png` |
+
+## 7. 직접 확인하는 방법
+
+`python main.py` 실행 후:
+
+1. 아무것도 누르지 않고 기다리면 5초 뒤 소년이 눕는다 (SLEEP). `space` 로 깨운다.
+2. `a` 키를 누르면 소년이 2배로 커지고 빠르게 달린다 (AUTO_RUN).
+3. 손을 떼고 두면 화면 끝에서 저절로 돌아서 반대로 달린다.
+4. `a` 를 누른 뒤 5초가 지나면 원래 크기로 서서 대기한다 (IDLE).
+5. 다시 `a` 를 누르고 달리는 중에 `←` 나 `→` 를 누르면, 원래 크기로 그 방향으로 달린다 (RUN). 키를 떼면 IDLE.
+
+## 8. 산출물
+
+- `boy.py`, `grass.py`, `main.py`, 이미지 리소스 (`animation_sheet.png`, `grass.png`)
 - `PRD.md` (이 문서)
-- 상태 다이어그램 이미지
+- `state_diagram.png` (상태 다이어그램)
