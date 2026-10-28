@@ -84,6 +84,29 @@ class Run:
             boy.image.clip_draw(boy.frame * 100, 0, 100, 100, boy.x, boy.y)
 
 
+class AutoRun:
+    # 자동 무적 런: 키 조작 없이 좌우로 계속 달린다
+    def __init__(self, boy):
+        self.boy = boy
+
+    def enter(self):
+        self.boy.frame = 0
+
+    def exit(self):
+        pass
+
+    def do(self):
+        boy = self.boy
+        boy.frame = (boy.frame + 1) % 8
+
+    def draw(self):
+        boy = self.boy
+        if boy.face_dir == 1:
+            boy.image.clip_draw(boy.frame * 100, 100, 100, 100, boy.x, boy.y)
+        else:
+            boy.image.clip_draw(boy.frame * 100, 0, 100, 100, boy.x, boy.y)
+
+
 class Boy:
     transitions = [
         {'trigger': 'time_out',   'source': 'IDLE',  'dest': 'SLEEP'},
@@ -101,7 +124,8 @@ class Boy:
         self.image = load_image('animation_sheet.png')
 
         # 상태 이름 -> 상태 객체
-        self.state_objects = {'IDLE': Idle(self), 'SLEEP': Sleep(self), 'RUN': Run(self)}
+        self.state_objects = {'IDLE': Idle(self), 'SLEEP': Sleep(self), 'RUN': Run(self),
+                              'AUTO_RUN': AutoRun(self)}
         states = [State(name, on_enter=s.enter, on_exit=s.exit) for name, s in self.state_objects.items()]
         # ignore_invalid_triggers: 현재 상태에서 정의되지 않은 이벤트는 에러 없이 무시
         self.machine = Machine(model=self, states=states, transitions=Boy.transitions,
